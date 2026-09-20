@@ -95,4 +95,4 @@ Omarchy's hot-reload does not replace a kept instance.
 
 ## Licence
 
-MIT — see [LICENSE](LICENSE).
+GPL-3.0 — see [LICENSE](LICENSE).
