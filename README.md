@@ -17,8 +17,8 @@ extras are drawn.
 ## Install
 
 ```bash
-omarchy plugin add https://github.com/<you>/omarchy-cheatsheet.git
-omarchy plugin enable alexw.cheatsheet
+omarchy plugin add https://github.com/titteerbot/omarchy-cheatsheet.git
+omarchy plugin enable titteerbot.cheatsheet
 omarchy restart shell
 ```
 
@@ -95,4 +95,4 @@ Omarchy's hot-reload does not replace a kept instance.
 
 ## Licence
 
-TBD
+MIT — see [LICENSE](LICENSE).

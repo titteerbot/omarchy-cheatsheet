@@ -1,11 +1,13 @@
 {
   "schemaVersion": 1,
-  "id": "alexw.cheatsheet",
+  "id": "titteerbot.cheatsheet",
   "name": "Keybinding cheat sheet",
   "version": "0.1.0",
-  "author": "alexw",
+  "author": "titteerbot",
   "description": "Hold SUPER to reveal the most common keybindings.",
-  "kinds": ["overlay"],
+  "kinds": [
+    "overlay"
+  ],
   "keepLoaded": true,
   "entryPoints": {
     "overlay": "Cheatsheet.qml"
