@@ -69,7 +69,7 @@ Knobs live at the top of `Cheatsheet.qml`:
 | Property | Default | What it does |
 |---|---|---|
 | `revealDelay` | `200` | ms SUPER must be held before the sheet appears |
-| `maxVisibleMs` | `6000` | hard cap, for the suppressed-release case |
+| `maxVisibleMs` | `20000` | last-resort cap, for the suppressed-release case |
 | `chipsWidth` | `Style.space(62)` | width of the keycap column |
 | `columnGap` | `Style.space(22)` | space between sections |
 
@@ -88,8 +88,10 @@ Omarchy's hot-reload does not replace a kept instance.
   with an empty `key` *and* `keycode: 0`, so there is nothing to resolve. The
   `1–9` chips are drawn from the curation table instead of from your bindings.
 - **Chords that run a command don't self-dismiss.** The activity backstop sees
-  window and workspace events, but something like `SUPER+C` emits nothing, so
-  the sheet waits for the cap.
+  window and workspace events, but something like `SUPER+C` emits nothing and
+  Hyprland suppresses the release bind once any chord has fired, so the sheet
+  is stranded. It heals on your next SUPER press and release; failing that, the
+  20s cap clears it.
 - **Multi-monitor is untested.** The overlay follows `Hyprland.focusedMonitor`,
   but it has only ever run on a single-output machine.
 

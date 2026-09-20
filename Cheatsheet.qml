@@ -22,7 +22,15 @@ Item {
   // Long enough that SUPER+W and friends never flash the sheet, short enough
   // that a deliberate hold feels immediate.
   readonly property int revealDelay: 200
-  readonly property int maxVisibleMs: 6000
+
+  // Last-resort cap, for the one case nothing else catches: a chord fired
+  // during the hold (so Hyprland suppressed the release bind) and that chord
+  // only ran a command, emitting no compositor event for the activity
+  // backstop to see. It is deliberately far longer than a plausible hold —
+  // the cap firing while SUPER is still down is a bug the user sees, whereas
+  // a stranded sheet is click-through, takes no focus, and heals itself on
+  // the next SUPER press and release.
+  readonly property int maxVisibleMs: 20000
 
   readonly property int pad: Style.space(20)
   readonly property int columnGap: Style.space(22)
