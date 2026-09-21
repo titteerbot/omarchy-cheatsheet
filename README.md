@@ -6,8 +6,8 @@ Hold **SUPER** and a keybinding cheat sheet fades in. Let go and it's gone.
 
 The sheet is generated from your live bindings, not from a list someone typed
 out. Rebind a key and the chip follows it; unbind one and its row disappears.
-SUPER itself never gets a chip — you're holding it — so only the `⌃ ⌥ ⇧`
-extras are drawn.
+SUPER itself never gets a chip — you're holding it — so only the extras are
+drawn: `Ctrl`, `Alt` and `⇧`.
 
 ## Requirements
 

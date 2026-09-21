@@ -99,11 +99,13 @@ function keyLabel(bind) {
 }
 
 // SUPER is held while the sheet is up, so only the extra modifiers earn a chip.
+// Ctrl and Alt are spelled out: the Mac glyphs for them (⌃ ⌥) read as stray
+// punctuation on a Linux desktop. ⇧ is recognised everywhere, so it stays.
 function chipsFor(bind) {
   var chips = [];
   var mask = Number(bind.modmask || 0);
-  if (mask & MOD_CTRL) chips.push("⌃");
-  if (mask & MOD_ALT) chips.push("⌥");
+  if (mask & MOD_CTRL) chips.push("Ctrl");
+  if (mask & MOD_ALT) chips.push("Alt");
   if (mask & MOD_SHIFT) chips.push("⇧");
   var key = keyLabel(bind);
   if (key !== "") chips.push(key);

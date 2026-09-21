@@ -233,7 +233,7 @@ Item {
           }
 
           Text {
-            text: "held — ⌃ ctrl  ⌥ alt  ⇧ shift"
+            text: "held — ⇧ is shift"
             font.family: Style.font.family
             font.pixelSize: Style.font.caption
             color: Util.alpha(Color.popups.text, 0.5)
