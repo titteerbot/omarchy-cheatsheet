@@ -21,6 +21,20 @@ Item {
   property var sections: []
   property bool loaded: false
 
+  // Injected by the shell. Only the id is used, so a cloned copy of this
+  // plugin reads its own entry in shell.json rather than the original's.
+  property var manifest: null
+  readonly property string pluginId: manifest && manifest.id ? String(manifest.id) : "titteerbot.cheatsheet"
+
+  // The two inputs to the sheet: live `hyprctl binds` output, and the extra
+  // `sections` from this plugin's entry in ~/.config/omarchy/shell.json.
+  property string bindsText: ""
+  property var userSections: []
+
+  function rebuild() {
+    root.sections = Model.build(root.bindsText, root.userSections)
+  }
+
   // Long enough that SUPER+W and friends never flash the sheet, short enough
   // that a deliberate hold feels immediate.
   readonly property int revealDelay: 200
@@ -95,9 +109,29 @@ Item {
     stdout: StdioCollector {
       waitForEnd: true
       onStreamFinished: {
-        root.sections = Model.build(text)
+        root.bindsText = text
+        root.rebuild()
         root.loaded = true
       }
+    }
+  }
+
+  // Watched, so adding a row to shell.json shows up on the next hold with no
+  // restart. `text()` is stale inside the change signal itself, so a change
+  // goes through reload() and onLoaded like the first read does.
+  FileView {
+    id: shellConfig
+    path: Quickshell.env("HOME") + "/.config/omarchy/shell.json"
+    watchChanges: true
+    printErrors: false
+    onLoaded: {
+      root.userSections = Model.userSectionsFrom(text(), root.pluginId)
+      root.rebuild()
+    }
+    onFileChanged: reload()
+    onLoadFailed: {
+      root.userSections = []
+      root.rebuild()
     }
   }
 

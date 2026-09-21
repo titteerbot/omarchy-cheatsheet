@@ -93,6 +93,47 @@ bindings, or a hand-drawn `keys` summary that collapses a family (the arrow
 keys, workspaces 1–9) into one line and names a `requires` description so it
 disappears if you unbind that family.
 
+### Adding your own rows
+
+To put your own bindings on the sheet without editing the plugin, add
+`sections` to its entry in `~/.config/omarchy/shell.json`. Rows take the same
+two shapes as the built-in table:
+
+```json
+"plugins": [
+  {
+    "id": "titteerbot.cheatsheet",
+    "sections": [
+      {
+        "title": "Launch",
+        "rows": [
+          { "desc": "Windows desktop (RDP)", "label": "Windows desktop" }
+        ]
+      },
+      {
+        "title": "Media",
+        "rows": [
+          { "desc": "Play/pause" },
+          { "keys": ["F7", "–", "F9"], "label": "Media keys", "requires": "Play/pause" }
+        ]
+      }
+    ]
+  }
+]
+```
+
+- A section whose `title` matches a built-in one (ignoring case) gets its rows
+  added to the end of it. Any other title becomes a new section after the
+  built-ins.
+- `desc` is the description you gave the binding, e.g. the second argument to
+  `o.bind(...)`. Run `hyprctl binds -j` to see them. As with the built-in
+  rows, a row whose binding doesn't exist is left off.
+- Malformed rows are skipped, and a `shell.json` that doesn't parse leaves
+  just the built-in sheet.
+- The file is watched, so changes show up on the next hold without a restart.
+  These rows live outside the plugin directory, so `omarchy plugin update`
+  leaves them alone.
+
 Saving a change to the QML needs `omarchy restart shell`: the plugin is
 `keepLoaded`, and Omarchy's hot-reload does not replace a kept instance.
 Changes to `hypr/cheatsheet.lua` need `hyprctl reload` instead.

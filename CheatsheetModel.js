@@ -133,12 +133,95 @@ function indexBinds(jsonText) {
   return byDescription;
 }
 
-function build(jsonText) {
+// A user row is kept only if it has the shape the built-in rows have: a `desc`
+// string, or a `keys` array of strings with a `label`. Anything else is
+// dropped rather than drawn half-broken.
+function cleanRow(row) {
+  if (!row || typeof row !== "object") return null;
+  var label = typeof row.label === "string" && row.label !== "" ? row.label : null;
+
+  if (typeof row.desc === "string" && row.desc !== "") {
+    return label ? { desc: row.desc, label: label } : { desc: row.desc };
+  }
+
+  if (Array.isArray(row.keys) && row.keys.length > 0 && label) {
+    for (var k = 0; k < row.keys.length; k++) {
+      if (typeof row.keys[k] !== "string") return null;
+    }
+    var out = { keys: row.keys.slice(), label: label };
+    if (typeof row.requires === "string" && row.requires !== "") out.requires = row.requires;
+    return out;
+  }
+
+  return null;
+}
+
+// Layers the user's `sections` from shell.json over the built-in table. A
+// section whose title matches a built-in one (ignoring case) gets its rows
+// appended there; any other title becomes a new section after the built-ins.
+function mergeSections(base, extra) {
+  var merged = [];
+  var byTitle = {};
+
+  for (var b = 0; b < base.length; b++) {
+    var copy = { title: base[b].title, rows: base[b].rows.slice() };
+    merged.push(copy);
+    byTitle[copy.title.toLowerCase()] = copy;
+  }
+
+  if (!Array.isArray(extra)) return merged;
+
+  for (var e = 0; e < extra.length; e++) {
+    var section = extra[e];
+    if (!section || typeof section.title !== "string" || section.title === "") continue;
+    if (!Array.isArray(section.rows)) continue;
+
+    var rows = [];
+    for (var r = 0; r < section.rows.length; r++) {
+      var row = cleanRow(section.rows[r]);
+      if (row) rows.push(row);
+    }
+    if (rows.length === 0) continue;
+
+    var key = section.title.toLowerCase();
+    if (byTitle.hasOwnProperty(key)) {
+      byTitle[key].rows = byTitle[key].rows.concat(rows);
+    } else {
+      var added = { title: section.title, rows: rows };
+      merged.push(added);
+      byTitle[key] = added;
+    }
+  }
+
+  return merged;
+}
+
+// Pulls this plugin's `sections` out of shell.json's top-level `plugins`
+// list. Missing file, bad JSON or no entry all mean "no user sections".
+function userSectionsFrom(shellJsonText, pluginId) {
+  var config;
+  try {
+    config = JSON.parse(shellJsonText || "{}");
+  } catch (e) {
+    return [];
+  }
+  var plugins = config && Array.isArray(config.plugins) ? config.plugins : [];
+  for (var i = 0; i < plugins.length; i++) {
+    var entry = plugins[i];
+    if (entry && entry.id === pluginId) {
+      return Array.isArray(entry.sections) ? entry.sections : [];
+    }
+  }
+  return [];
+}
+
+function build(jsonText, userSections) {
   var byDescription = indexBinds(jsonText);
+  var table = mergeSections(SECTIONS, userSections);
   var sections = [];
 
-  for (var s = 0; s < SECTIONS.length; s++) {
-    var section = SECTIONS[s];
+  for (var s = 0; s < table.length; s++) {
+    var section = table[s];
     var rows = [];
 
     for (var r = 0; r < section.rows.length; r++) {
