@@ -50,6 +50,11 @@ Item {
 
   function reveal() {
     if (!root.loaded && !bindsProc.running) bindsProc.running = true
+    // Baseline the focus comparison at press time, not when the timer fires. A
+    // chord landing inside revealDelay updates focusedAddress first, so a
+    // baseline taken later would be the window the chord just moved us to and
+    // every subsequent event would look like "no change".
+    root.addressAtReveal = root.focusedAddress
     revealTimer.restart()
   }
 
@@ -74,7 +79,6 @@ Item {
     id: revealTimer
     interval: root.revealDelay
     onTriggered: {
-      root.addressAtReveal = root.focusedAddress
       root.opened = true
       maxTimer.restart()
     }
@@ -120,11 +124,20 @@ Item {
     function onRawEvent(event) {
       var name = String(event.name || "")
 
+      // A hold counts as live from the moment SUPER goes down, not from when
+      // the sheet becomes visible. Typing SUPER+RETURN quickly fires the chord
+      // inside revealDelay, and gating on `opened` here would throw that
+      // activity away and then show the sheet into the silence that follows.
+      var live = root.opened || revealTimer.running
+
       // Track focus by address rather than by the event firing at all, so a
       // title change does not read as a focus move.
       if (name === "activewindowv2") {
         root.focusedAddress = String(event.data || "")
-        if (root.opened && root.focusedAddress !== root.addressAtReveal) root.dismiss()
+        // An empty baseline means no focus event has been seen yet this
+        // session, not that focus moved — dismissing on it would kill the
+        // first hold after every shell start.
+        if (live && root.addressAtReveal !== "" && root.focusedAddress !== root.addressAtReveal) root.dismiss()
         return
       }
 
@@ -134,7 +147,7 @@ Item {
         return
       }
 
-      if (root.opened && root.actionEvents[name] === true) root.dismiss()
+      if (live && root.actionEvents[name] === true) root.dismiss()
     }
   }
 
