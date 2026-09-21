@@ -8,10 +8,12 @@ import "CheatsheetModel.js" as Model
 
 // Hold-SUPER keybinding cheat sheet.
 //
-// Hyprland fires the press bind on SUPER_L and the release bind on
-// SUPER + SUPER_L (see hypr/bindings.lua). The release bind does not fire once
-// a combo has been used in the same hold, so `hyprlandActivity` and `maxTimer`
-// below exist to catch the sheet that would otherwise stay on screen.
+// The Hyprland half lives in hypr/cheatsheet.lua: the press bind on SUPER_L
+// raises cheatsheet:hold, then polls hl.is_key_down inside the compositor and
+// raises cheatsheet:unhold the moment SUPER physically comes up. That is the
+// primary dismissal and it holds for every chord. `hyprlandActivity` below
+// additionally closes the sheet as soon as a chord visibly lands, and
+// `maxTimer` is a last resort if the compositor side ever stops reporting.
 Item {
   id: root
 
@@ -23,13 +25,10 @@ Item {
   // that a deliberate hold feels immediate.
   readonly property int revealDelay: 200
 
-  // Last-resort cap, for the one case nothing else catches: a chord fired
-  // during the hold (so Hyprland suppressed the release bind) and that chord
-  // only ran a command, emitting no compositor event for the activity
-  // backstop to see. It is deliberately far longer than a plausible hold —
-  // the cap firing while SUPER is still down is a bug the user sees, whereas
-  // a stranded sheet is click-through, takes no focus, and heals itself on
-  // the next SUPER press and release.
+  // Last resort, for when the compositor-side key poll stops reporting (a
+  // shell restart mid-hold, say). It matches that poll's own bound in
+  // hypr/cheatsheet.lua, and is deliberately far longer than a plausible
+  // hold: the cap firing while SUPER is still down is a bug the user sees.
   readonly property int maxVisibleMs: 20000
 
   readonly property int pad: Style.space(20)
@@ -156,12 +155,11 @@ Item {
   // two processes on every shortcut the user types.
   //
   // Two shortcuts rather than one because Hyprland's `global` dispatcher
-  // delivers one edge per bind: a press bind raises `pressed` on its shortcut
-  // and never `released`. The dismiss half is therefore its own shortcut, wired
-  // to a release bind carrying the SUPER modmask — the only release form
-  // Hyprland fires at all. Measured on 0.56.2: hold.pressed, then
-  // unhold.released. Both edges are handled on both shortcuts anyway, since
-  // dismissing twice is harmless and the mapping is version-dependent.
+  // delivers one edge per bind: a press bind raises `pressed` and never
+  // `released`. So dismissal is its own shortcut, raised by the compositor-side
+  // key poll in hypr/cheatsheet.lua. Both edges are handled on both shortcuts,
+  // since dismissing twice is harmless and the edge a programmatic dispatch
+  // raises is version-dependent.
   GlobalShortcut {
     appid: "cheatsheet"
     name: "hold"
